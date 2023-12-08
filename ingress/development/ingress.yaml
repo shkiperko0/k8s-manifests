@@ -32,14 +32,6 @@ spec:
   # - secretName: ssl-cert-stage
   # - secretName: origin-ca-key
   #hosts:
-  #- eamgames.net             # website front
-  #- www.eamgames.net         # website front www
-  # - content.eamgames.net     # content delivery api ms (content backend api/cd-api)
-  #- api.eamgames.net         # api-gate
-  #- zero.eamgames.net        # admin api-gate
-  # - http-wallet.eamgames.net # wallet http
-  # - grpc-wallet.eamgames.net # wallet grpc throught envoy
-  #- admin.eamgames.net       # admin panel
   rules:
 
   - host: xarv.ru
