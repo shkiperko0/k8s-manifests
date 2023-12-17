@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name     : api-gate
-  namespace: xarv-stage
+  namespace: argocd
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:
@@ -20,7 +20,7 @@ spec:
     #   - name: "container.image"
     #     value: adv4000/app1:v3
 
-  project: xarv
+  project: xarv-stage
   syncPolicy:
     automated:
       prune   : true
