@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api-gate
-  namespace: website-stage
+  namespace: xarv-stage
 spec:
   revisionHistoryLimit: 3
   strategy:
@@ -95,7 +95,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: apigate-s
-  namespace: website-stage
+  namespace: xarv-stage
   labels:
     app: api-gate
 spec:
@@ -114,7 +114,7 @@ spec:
 #apiVersion: autoscaling/v2beta2
 #  name: api-autoscale
 ---
-#  namescape: website-stage
+#  namescape: xarv
 #spec:
 #  scaleTargetRef:
 #    apiVersion: apps/v1

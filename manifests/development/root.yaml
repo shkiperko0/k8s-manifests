@@ -10,7 +10,7 @@ spec:
     name     : in-cluster
     namespace: argocd
   source:
-    path   : "manifests/root/applications"
+    path   : "manifests/development/applications"
     repoURL: "git@github.com:shkiperko0/k8s-manifests.git"
     targetRevision: HEAD
   project: default
