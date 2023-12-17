@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gate
+  namespace: website-stage
+spec:
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: api-gate
+  template:
+    metadata:
+      labels:
+        app: api-gate
+        tier: apigate
+      annotations:
+        #config.linkerd.io/skip-inbound-ports: "7777"
+        #linkerd.io/inject: enabled
+        secrets.doppler.com/reload: 'true'
+    spec:
+      containers:
+      - name: api-gate
+        image: eamcorp/api-gate:dev-9ff8794f
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "1024Mi"
+            cpu: "1000m"
+          requests:
+            memory: "128Mi"
+            cpu: "500m"
+        ports: # this ports like exposed on docker file
+        - name: apigate-http
+          containerPort: 4000
+        - name: apigate-grpc
+          containerPort: 4001
+        env:
+        - name: TYPE # app type (default/admin/user)
+          value: "user"
+        - name: MODE # app mode (localhost/development/production)
+          value: "development"
+        - name: NAME # name of app
+          value: "user-api-gate"
+        - name: LOCAL_ADDR_PREFIX
+          value: "10.124."
+        - name: EXTERNAL_DOMAIN
+          value: "apigate-s"
+        - name: PORTS # ports for services in app
+          value: "http:4000, grpc:4001"
+        - name: EXTERNAL_PORT_BIND
+          value: "7000:4000,8000:4001" # service port, local port (1000:2000,8000)
+        - name: AUTH_SERVER
+          value: "grpc://eam-auth-s:4001"
+        - name: MARKET_SERVER
+          value: "grpc://market-s:4001"
+        # - name: HTTP_SERVER
+        #   value: "0.0.0.0:4000"
+        # - name: GRPC_SERVER
+        #   value: "0.0.0.0:4001"
+        envFrom:
+        #- secretRef:
+        #    name: apigate-db
+        - secretRef:
+            name: apigate-db-dev
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 4000
+          periodSeconds: 90
+          initialDelaySeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 4000
+          periodSeconds: 20
+          successThreshold: 2
+        # Add the debug configuration
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            add:
+            - SYS_PTRACE
+        # Specify the command for debugging
+      #command: ["/go/bin/dlv", "exec", "/home/service/app", "--headless=true", "--listen=:7777", "--api-version=2", "--continue", "--accept-multiclient"]
+      restartPolicy: Always
+      imagePullSecrets:
+      - name: dockerhub-pull-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apigate-s
+  namespace: website-stage
+  labels:
+    app: api-gate
+spec:
+  # type: LoadBalancer
+  type: NodePort
+  selector:
+    app: api-gate
+    tier: apigate
+  ports:
+  - name: apigate-http
+    port: 7000
+    targetPort: 4000
+  - name: apigate-grpc
+    port: 8000
+    targetPort: 4001
+#apiVersion: autoscaling/v2beta2
+#  name: api-autoscale
+---
+#  namescape: website-stage
+#spec:
+#  scaleTargetRef:
+#    apiVersion: apps/v1
+#    kind: Deployment
+#    name: api-gate
+#  minReplicas: 1
+#  maxReplicas: 3
+#  targetCPUUtilizationPercentage: 90

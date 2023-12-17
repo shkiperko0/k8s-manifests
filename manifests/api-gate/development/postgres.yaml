@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apigate-postgres
+  namespace: website-stage
+  labels:
+    app: api-gate
+spec:
+  selector:
+    matchLabels:
+      app: api-gate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: api-gate
+        tier: apigate
+      annotations:
+        #config.linkerd.io/skip-inbound-ports: "8006"
+        #config.linkerd.io/skip-outbound-ports: "8006"
+        #config.linkerd.io/default-inbound-policy: all-unauthenticated
+        #config.linkerd.io/default-outbound-policy: 
+        #linkerd.io/inject: enabled
+        #config.linkerd.io/skip-inbound-ports: "5432"
+        #config.linkerd.io/skip-outbound-ports: "5432"
+        secrets.doppler.com/reload: 'true'
+    spec:
+      containers:
+        - name: postgres-apigate
+          image: eamcorp/eam-postgres:14.5
+          imagePullPolicy: "IfNotPresent"
+          ports:
+          - name: apigate-pg-port
+            containerPort: 5432
+          envFrom:
+            #- secretRef:
+            #    name: apigate-db-init
+            - secretRef:
+                name: apigate-db-init-dev
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: apigate-postgres
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1024Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+      volumes:
+        - name: apigate-postgres
+          persistentVolumeClaim:
+            claimName: apigate-postgres-pv-claim
+      imagePullSecrets:
+        - name: dockerhub-pull-secret
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: apigate-postgres-pv-claim
+  namespace: website-stage
+  labels:
+    app: api-gate
+    tier: apigate
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apigate-postgres-s
+  namespace: website-stage
+  labels:
+    app: api-gate
+spec:
+  type: NodePort
+  selector:
+    app: api-gate
+    tier: apigate 
+  ports:
+    - port: 5432
+      targetPort: 5432
+      name: apigate-pg-port

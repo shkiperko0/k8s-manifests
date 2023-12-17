@@ -1,21 +1,30 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name     : root
-  namespace: argocd
+  name     : api-gate
+  namespace: xarv
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
     name     : in-cluster
-    namespace: argocd
+    namespace: api-gate
   source:
-    path   : "manifests/root/applications"
+    path   : "manifests/api-gate/development"
     repoURL: "git@github.com:shkiperko0/k8s-manifests.git"
     targetRevision: HEAD
-  project: default
+    # helm:
+    #   valueFiles:
+    #   - values_dev.yaml
+    #   parameters:
+    #   - name: "container.image"
+    #     value: adv4000/app1:v3
+
+  project: xarv
   syncPolicy:
     automated:
       prune   : true
       selfHeal: true
-      
+    syncOptions:
+      - CreateNamespace=true    
+
