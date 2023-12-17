@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name     : api-gate
-  namespace: xarv
+  namespace: xarv-stage
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:
