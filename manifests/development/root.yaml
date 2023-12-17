@@ -1,12 +1,13 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
+# чтобы чтото было для арги здесь
 metadata:
-  name     : root
-  namespace: xarv-ns
+  name     : "root" # имя апки 
+  namespace: "argocd" # всегда argocd иначе не видит арго
 spec:
   destination:
     name     : in-cluster
-    namespace: argocd
+    namespace: xarv-ns
   source:
     path   : "manifests/development/applications"
     repoURL: "git@github.com:shkiperko0/k8s-manifests.git"
